@@ -91,17 +91,38 @@ class WebSocketHandler:
         if ack.order.id < 0:
             if ack.order.clientId in self.wsByClientId:
                 if ack.status == OrderStatus.NEW:
-                    newAck = json.dumps({35:8,
+                    ack_ = json.dumps({35:8,
                                          56:ack.order.clientId,
-                                         39:0,
+                                         39:0, # New
                                          11:ack.order.id,
                                          54:(1 if ack.order.side == "Buy" else 2),
                                          38:ack.order.qty,
                                          44:ack.order.px,
                                          52:str(dt.datetime.now())
                                         })
-                    # print(f"Sending {newAck} to self.wsByClientId[ack.order.clientId]")
-                    await self.wsByClientId[ack.order.clientId].send(newAck)
+                if ack.status == OrderStatus.CANCELLED:
+                    ack_ = json.dumps({35:8,
+                                         56:ack.order.clientId,
+                                         39:4, # Cancelled
+                                         11:ack.order.id,
+                                         54:(1 if ack.order.side == "Buy" else 2),
+                                         38:ack.order.qty,
+                                         44:ack.order.px,
+                                         52:str(dt.datetime.now())
+                                        })
+                if ack.status == OrderStatus.MODIFIED:
+                    ack_ = json.dumps({35:8,
+                                         56:ack.order.clientId,
+                                         39:5, # Replaced
+                                         11:ack.order.id,
+                                         54:(1 if ack.order.side == "Buy" else 2),
+                                         38:ack.order.qty,
+                                         44:ack.order.px,
+                                         52:str(dt.datetime.now())
+                                        })
+                # print(f"Sending {ack_} to self.wsByClientId[ack.order.clientId]")
+                await self.wsByClientId[ack.order.clientId].send(ack_)
+                    
 
     async def ws_recv(self, ws):
         # print(f'{dt.datetime.now().timestamp()}:: Waiting for msg from {ws}')
@@ -136,24 +157,45 @@ class WebSocketHandler:
             try:
                 msg = json.loads(msg)
                 if msg['35'] == 'A':
-                    # print("Logon message")
+                    print("Logon message")
                     if msg['49'] == -1:
-                        # print("New Client")
-                        clientId = getNextClientId()
-                        self.wsByClientId[clientId] = ws
-                        self.mms[clientId] = MarketMaker(ob, self.ob.symbol, clientId, msAckEvent=self.ackEvent, px=139.00, default_qty=10, width=4)
-                        # print(f'Created MM')
-                        reply = {35:"A",56:clientId,44:self.mms[clientId].px}
-                        # print(f"Replying with {reply}")
-                        await ws.send(json.dumps(reply))
-                        await self.mms[clientId].start()
+                        try:
+                            print("New Client")
+                            clientId = getNextClientId()
+                            self.wsByClientId[clientId] = ws
+                            self.mms[clientId] = MarketMaker(ob, self.ob.symbol, clientId, ms_ack_event=self.ackEvent, px=139.00, default_qty=10, width=4)
+                            print(f'Created MM')
+                            reply = {35:"A",56:clientId,44:self.mms[clientId].px}
+                            # print(f"Replying with {reply}")
+                            await ws.send(json.dumps(reply))
+                            await self.mms[clientId].start()
+                        except Exception as ex:
+                            print(ex)
+                            traceback.print_exc(file=sys.stdout)
                 elif msg['35'] == 5:
                     print("Logout")
                 elif msg['35'] == 'D':
-                    print(msg['49'])
-                    print(self.mms)
-                    print(f"1 MS:New order message from {self.mms[msg['49']]}")
-                    await self.mms[msg['49']].placeNewOrder('Buy' if msg['38'] > 0 else 'Sell', msg['44'], abs(msg['38']))
+                    try:
+                        await self.mms[msg['49']].place_new_order('Buy' if msg['38'] > 0 else 'Sell', msg['44'], abs(msg['38']))
+                    except Exception as ex:
+                        print(ex)
+                        traceback.print_exc(file=sys.stdout)
+                elif msg['35'] == 'F':
+                    try:
+                        print("MS Cancel msg")
+                        order_id = msg['11']
+                        await self.mms[msg['49']].cancel_order(msg['11'])
+                    except Exception as ex:
+                        print(ex)
+                        traceback.print_exc(file=sys.stdout)
+                elif msg['35'] == 'G':
+                    try:
+                        print("MS Modify msg")
+                        order_id = msg['11']
+                        await self.mms[msg['49']].modify_order(msg['11'], msg['44'])
+                    except Exception as ex:
+                        print(ex)
+                        traceback.print_exc(file=sys.stdout)
             except Excpetion as ex:
                 print(ex)
                 traceback.print_exc(file=sys.stdout)
