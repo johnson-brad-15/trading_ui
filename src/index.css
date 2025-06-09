@@ -1,0 +1,189 @@
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.mdi-container {
+  background-color: #f0f0f0;
+}
+
+.mdi-document {
+  background-color:rgb(180, 180, 180);
+  width: 100%;
+  height: 100%;
+  border: 1px solid #ccc
+}
+
+.toolbar {
+padding: 10px;
+background-color: #eee;
+border-bottom: 1px solid #ccc;
+}
+
+.toolbar button {
+margin-right: 10px;
+}
+
+.window {
+background-color: white;
+box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.window-header {
+background-color: #ddd;
+padding: 5px;
+cursor: move;
+display: flex;
+justify-content: space-between;
+align-items: center;
+border-bottom: 1px solid #ccc;
+}
+
+.window-controls button {
+  margin-left: 5px;
+}
+
+.window-content {
+padding: 10px;
+}
+
+.maximized {
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+div {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 0%;
+  padding-right: 0px;
+  border-spacing: 0px;
+  border-collapse: collapse;
+  user-select: none;
+}
+
+.priceRow {
+  padding-top: 0px;
+  padding-bottom: 0px;
+  padding-left: 0%;
+  padding-right: 0px;
+  border-spacing: 0px;
+  border-collapse: collapse;
+}
+
+div.LadderRow {
+  display: grid;
+  grid-template-columns: 0.65fr 0.65fr 1fr 0.65fr 0.65fr;
+  padding: 0px 0;
+  line-height: 16px;
+  border-bottom: 0px solid black;
+}
+
+div.ladder {
+  width: 100%;
+  background-color: #1e1e1e;
+  color: #ffffff;
+  font-family: Verdana, source-code-pro, Menlo, Monaco, Consolas, monospace;
+  font-size: 11px;
+  border: 1px solid black;
+  border-spacing: 0;
+  border-collapse: collapse;
+}
+
+div.myBid {
+  color: black;
+  background-color: rgb(204, 204, 204);
+  border-bottom: 1px solid rgb(176, 177, 179);
+}
+div.myBidQty {
+  color: rgb(0, 0, 0);
+  background-color: rgb(255, 255, 255);
+  text-align: right;
+  padding-right: 3px;
+  box-shadow: 
+  inset -1px -1px 0px rgb(57, 97, 145),
+  inset 1px 1px 0px rgb(57, 97, 145);
+}
+
+div.mdBid {
+  color: black;
+  background-color: rgb(142, 154, 168);
+  border-bottom: 1px solid rgb(176, 177, 179);
+}
+div.mdBidQty {
+  color: rgb(255, 255, 255);
+  background-color: rgb(63, 88, 119);
+  text-align: right;
+  padding-right: 3px;
+  box-shadow: 
+    inset -1px -1px 0px rgba(0, 0, 0, 1),
+    inset 1px 1px 0px rgba(0, 0, 0, 1);
+}
+
+.priceRow.Px {
+  border-bottom: 1px solid black;
+  color: rgb(0, 0, 0);
+  background-color: rgb(161, 161, 161);
+  border-color: rgb(199, 199, 199); 
+  border-left: 1px solid rgb(109, 109, 109);
+  border-right: 1px solid rgb(109, 109, 109);
+  text-align: center;
+  padding: 0 3px;
+}
+.priceRow.Px.Traded {
+  color: white;
+  background-color: rgb(20, 20, 20);
+}
+/* .priceRow.Px.Traded.Content {
+  transform: translateX(1px)
+} */
+.priceRow.Px.Last {
+  color: black;
+  background-color: rgb(216, 216, 216);
+  text-align: center;
+  padding: 0 3px;
+  box-shadow: 
+    inset -1px -1px 0px rgba(0, 0, 0, 1),
+    inset 1px 1px 0px rgba(0, 0, 0, 1);
+}
+
+div.mdAsk {
+  color: black;
+  background-color: rgb(175, 146, 146);
+  border-bottom: 1px solid rgb(185, 184, 184);
+}
+div.mdAskQty {
+  color: rgb(255, 255, 255);
+  background-color: rgb(133, 83, 83);
+  text-align: left;
+  padding-left: 3px;
+  box-shadow: 
+    inset -1px -1px 0px rgba(0, 0, 0, 1),
+    inset 1px 1px 0px rgba(0, 0, 0, 1);
+}
+
+div.myAsk {
+  color: black;
+  background-color: rgb(204, 204, 204);
+  border-bottom: 1px solid rgb(185, 184, 184);
+}
+div.myAskQty {
+  color: rgb(0, 0, 0);
+  background-color: rgb(255, 255, 255);
+  text-align: left;
+  padding-left: 3px;
+  box-shadow: 
+  inset -1px -1px 0px rgb(134, 54, 54),
+  inset 1px 1px 0px rgb(134, 54, 54);
+}
