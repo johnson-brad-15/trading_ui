@@ -310,7 +310,6 @@ function StockData({onDataChange}) {
   const updateMyOrders = (exRpt) => {
     console.log("Updating my orders");
     setData(prevData => { 
-        console.log("Setting data: my orders");
         const newData = { ...prevData };
         const orderId = exRpt[11];
         const px = exRpt[44]
@@ -335,12 +334,68 @@ function StockData({onDataChange}) {
     });
   }
 
+  const cancelOrder = (exRpt) => {
+    const orderId = exRpt[11];
+    const px = exRpt[44]
+    setData(prevData => { 
+      const newData = { ...prevData };
+      const level = newData.levels[px];
+      if (exRpt[54] === 1) {
+        if (level && orderId in level.myBids) {
+          delete level.myBids[orderId];
+          level.myBidQty = Object.values(level.myBids).reduce((acc, obj) => acc + obj.qty, 0);
+        }
+      }
+      else if (exRpt[54] === 2) {
+        if (level && orderId in level.myAsks) {
+          delete level.myAsks[orderId];
+          level.myAskQty = Object.values(level.myAsks).reduce((acc, obj) => acc + obj.qty, 0);
+        }
+      }
+      delete newData.orders[orderId];
+      return newData;
+    });
+  }
+
+  const replaceOrder = (exRpt) => {
+    const orderId = exRpt[11];
+    const px = exRpt[44]
+    setData(prevData => { 
+      const newData = { ...prevData };
+      console.log("Modifying order ", orderId, " to ", px);
+      console.log("Old orders: ", newData.orders);
+      const level_new = newData.levels[px];
+      const level_old = newData.levels[newData.orders[orderId].px];
+      let order = newData.orders[orderId];
+      order.px = px;
+      if (exRpt[54] === 1) {
+        if (level_old && orderId in level_old.myBids) {
+          delete level_old.myBids[orderId];
+          level_old.myBidQty = Object.values(level_old.myBids).reduce((acc, obj) => acc + obj.qty, 0);
+        }
+        level_new.myBids[orderId] = order;
+        level_new.myBidQty = Object.values(level_new.myBids).reduce((acc, obj) => acc + obj.qty, 0);
+      }
+      else if (exRpt[54] === 2) {
+        console.log("New replace ask ack");
+        if (level_old && orderId in level_old.myAsks) {
+          console.log("Found old ask");
+          delete level_old.myAsks[orderId];
+          level_old.myAskQty = Object.values(level_old.myAsks).reduce((acc, obj) => acc + obj.qty, 0);
+        }
+        console.log("Setting new ask");
+        level_new.myAsks[orderId] = order;
+        level_new.myAskQty = Object.values(level_new.myAsks).reduce((acc, obj) => acc + obj.qty, 0);
+      }
+      return newData;
+    });
+  }
+
   const processExecRpt = (msg) => {
     console.log("Received execution report");
     const date = new Date(msg[52]);
     switch (msg[39]) {
       case(0): //New
-        console.log("NewOrder ack");
         updateMyOrders(msg);
         break;
       case(1):
@@ -349,6 +404,12 @@ function StockData({onDataChange}) {
         if (msg[56] === data.compId) {
           processFill(msg[31], msg[38], date);
         }
+        break;
+      case(4): //Cancel
+        cancelOrder(msg);
+        break;
+      case(5): //Modify
+        replaceOrder(msg);
         break;
       default:
         console.log("Unknown execution report status", msg[39]);

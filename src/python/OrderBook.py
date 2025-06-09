@@ -79,7 +79,7 @@ class OrderBook:
             side[o.px] = deque()
         side[o.px].append(o)
         if o.ackEvent:
-            print("4 OB:Setting AckEvent")
+            print(f"4 OB:Setting AckEvent: {o.ackEvent}")
             try:
                 o.ackEvent.set(OrderAck(o,OrderStatus.NEW))
             except Exception as ex:
@@ -102,6 +102,7 @@ class OrderBook:
             if orderId not in self.ordersById:
                 return
             o = self.ordersById[orderId]
+            if qty is None: qty = o.qty
             side, other_side = (self.bids, self.asks) if o.side == 'Buy' else (self.asks, self.bids)
             backOfTheLine = px != o.px or qty > o.qty
             if backOfTheLine and o.px in side:

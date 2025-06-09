@@ -26,22 +26,53 @@ const LadderTD_MyBids = React.memo(function LadderTD_Bid(props) {
     const px = level.px;
     const qty = level.myBidQty;
     const socket = props.socket;
+    const compId = props.compId;
     const dragBids = (event) => { 
-        event.dataTransfer.items.add("JSON.stringify(level.myBids)", 'text/plain');
-        console.log(event);
+        event.dataTransfer.setData('application/json', JSON.stringify(level.myBids));
+        event.dataTransfer.effectAllowed = 'move'; 
+        // event.dataTransfer.items.add("JSON.stringify(level.myBids)", 'text/plain');
+        console.log('Dragging from ', px);
     }
-    // const mdBidClick = () => { console.log('Clicked md bids:', px); socket.send(JSON.stringify({35:'D',38:10,44:px}))};
+    const handleDragOver = (event) => {
+        event.preventDefault();
+    }
+    const dropBids = (event) => {
+        event.preventDefault();
+        const droppedData = event.dataTransfer.getData('application/json');
+        const items = JSON.parse(droppedData);
+        console.log('Dropped Bids:', items, ' at ', px);
+        Object.values(items).map((order, index) => (
+            socket.send(JSON.stringify({35:'G',49:compId,11:order.id,44:px}))
+        ));
+    }
+    const handleRightClick = (event) => {
+        console.log('Cancelled bids at:', px);
+        event.preventDefault();
+        Object.values(level.myBids).map((order, index) => (
+            socket.send(JSON.stringify({35:'F',49:compId,11:order.id}))
+          ));
+    };
     return (
         <Profiler id={`TD:${px}.myBid`} onRender={handleRender}>
             <div 
+                onContextMenu={handleRightClick}
                 draggable="true"
                 onDragStart={dragBids} 
+                onDragOver={handleDragOver} 
+                onDrop={dropBids}
                 key={`myBid:${px}`} 
                 className={`myBid${qty != 0 ? 'Qty' : ''}`}>
                 {qty === 0 ? '' : qty}
             </div>
         </Profiler>
     )
+}, (prevProps, nextProps) => {
+    // Custom comparison function to determine if re-render is needed
+    return (
+        prevProps.level.px === nextProps.level.px &&
+        prevProps.level.myBidQty === nextProps.level.myBidQty &&
+        prevProps.compId === nextProps.compId
+    );
 }); 
 
 const LadderTD_Bid = React.memo(function LadderTD_Bid(props) {
@@ -98,13 +129,47 @@ const LadderTD_Ask = React.memo(function LadderTD_Ask(props) {
 });
 
 const LadderTD_MyAsks = React.memo(function LadderTD_Ask(props) {
-    const px = props.px;
-    const qty = props.qty;
+    const level = props.level;
+    const px = level.px;
+    const qty = level.myAskQty;
     const socket = props.socket;
-    // const mdAskClick = () => { console.log('Clicked md asks:', px); socket.send(JSON.stringify({35:'D',38:-10,44:px}))};
+    const compId = props.compId;
+    const dragAsks = (event) => { 
+        event.dataTransfer.setData('application/json', JSON.stringify(level.myAsks));
+        event.dataTransfer.effectAllowed = 'move'; 
+        // event.dataTransfer.items.add("JSON.stringify(level.myBids)", 'text/plain');
+        console.log('Dragging from ', px);
+    }
+    const handleDragOver = (event) => {
+        event.preventDefault();
+    }
+    const dropAsks = (event) => {
+        event.preventDefault();
+        const droppedData = event.dataTransfer.getData('application/json');
+        const items = JSON.parse(droppedData);
+        Object.values(items).map((order, index) => (
+            socket.send(JSON.stringify({35:'G',49:compId,11:order.id,44:px}))
+        ));
+    }
+    const handleRightClick = (event) => {
+        event.preventDefault();
+        Object.values(level.myAsks).map((order, index) => (
+            socket.send(JSON.stringify({35:'F',49:compId,11:order.id}))
+          ));
+    };
     return (
         <Profiler id={`TD:${px}.myAsk`} onRender={handleRender}>
-            <div key={`myAsk:${px}`} className={`myAsk${qty != 0 ? 'Qty' : ''}`}>{qty === 0 ? '' : qty}</div>
+            <div 
+                onContextMenu={handleRightClick}
+                draggable="true"
+                onDragStart={dragAsks} 
+                onDragOver={handleDragOver} 
+                onDrop={dropAsks} 
+                key={`myAsk:${px}`} 
+                className={`myAsk${qty != 0 ? 'Qty' : ''}`}
+            >
+            {qty === 0 ? '' : qty}
+        </div>
         </Profiler>
     )
 });
@@ -116,11 +181,11 @@ const LadderTR = React.memo(function LadderTR(props) {
     return (
         <Profiler id={`TR:${level.px}`} onRender={handleRender}>
             <div className="LadderRow" key={`Row:${level.px}`} >
-                <LadderTD_MyBids level={level} socket={socket}/>
+                <LadderTD_MyBids level={level} socket={socket} compId={compId}/>
                 <LadderTD_Bid px={level.px} qty={level.bid} socket={socket} compId={compId}/>
                 <LadderTD_Px level={level}/>
                 <LadderTD_Ask px={level.px} qty={level.ask} socket={socket} compId={compId}/>
-                <LadderTD_MyAsks px={level.px} qty={level.myAskQty} socket={socket}/>
+                <LadderTD_MyAsks level={level} socket={socket} compId={compId}/>
             </div>
         </Profiler>
     )
