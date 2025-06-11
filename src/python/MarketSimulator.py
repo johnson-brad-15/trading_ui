@@ -15,6 +15,7 @@ import json
 from DataEvent import DataEvent, AsyncDataEvent
 from Order import OrderStatus
 import datetime as dt
+import yfinance as yf
 
 
 # In[2]:
@@ -157,7 +158,7 @@ class WebSocketHandler:
                             print("New Client")
                             clientId = getNextClientId()
                             self.wsByClientId[clientId] = ws
-                            self.mms[clientId] = MarketMaker(ob, self.ob.symbol, clientId, ms_ack_event=self.ackEvent, px=139.00, default_qty=10, width=4)
+                            self.mms[clientId] = MarketMaker(ob, self.ob.symbol, clientId, ms_ack_event=self.ackEvent, px=opening_px, default_qty=10, width=4)
                             print(f'Created MM')
                             reply = {35:"A",56:clientId,44:self.mms[clientId].px}
                             # print(f"Replying with {reply}")
@@ -236,13 +237,15 @@ async def main_async(ob, mms):
         traceback.print_exc(file=sys.stdout)
 
 symbol = 'META'
+ticker = symbol # this is craziness, but it doesn't work if I just use symbol
+opening_px = yf.download(ticker, start=dt.datetime.now().strftime('%Y-%m-%d'), auto_adjust=True)['Open'].iloc[0][0]
 
 if __name__ == "__main__":
     book_event = asyncio.Event()
     ob = OrderBook(symbol)
     mms = {}
-    # client_id = getNextClientId()
-    # mms[client_id] = MarketMaker(ob, symbol, client_id, px=139.00, default_qty=10, width=4)
+    client_id = getNextClientId()
+    mms[client_id] = MarketMaker(ob, symbol, client_id, px=opening_px, default_qty=10, width=4)
     await(main_async(ob, mms))
 
 
@@ -250,6 +253,22 @@ if __name__ == "__main__":
 
 
 #python -m nbconvert --to script MarketSimulator.ipynb
+
+
+# In[ ]:
+
+
+import yfinance as yf
+
+
+# In[ ]:
+
+
+ticker = 'META'
+#data = yf.download(ticker, start='2025-06-11', auto_adjust=True)
+data = yf.download(ticker, start=dt.datetime.now().strftime('%Y-%m-%d'), auto_adjust=True)
+# print(data.info())
+print(data['Open'].iloc[0][0])
 
 
 # In[ ]:
