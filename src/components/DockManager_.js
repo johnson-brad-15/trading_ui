@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { themeAbyss } from "dockview";
 import '../../node_modules/dockview-core/dist/styles/dockview.css';
 import { DockviewReact, DockviewReadyEvent, IDockviewPanelProps } from 'dockview';
-import Ladder from './ladder';
+import Ladder from './InstrumentLevelView.js';
 import FinChart from './testchart.js';
 import Sparkline from './sparkline'
 
