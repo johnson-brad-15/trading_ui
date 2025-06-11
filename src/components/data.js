@@ -334,7 +334,7 @@ function StockData({onDataChange}) {
     });
   }
 
-  const cancelOrder = (exRpt) => {
+  const processCancel = (exRpt) => {
     const orderId = exRpt[11];
     const px = exRpt[44]
     setData(prevData => { 
@@ -357,7 +357,7 @@ function StockData({onDataChange}) {
     });
   }
 
-  const replaceOrder = (exRpt) => {
+  const processModify = (exRpt) => {
     const orderId = exRpt[11];
     const px = exRpt[44]
     setData(prevData => { 
@@ -406,10 +406,10 @@ function StockData({onDataChange}) {
         }
         break;
       case(4): //Cancel
-        cancelOrder(msg);
+        processCancel(msg);
         break;
       case(5): //Modify
-        replaceOrder(msg);
+        processModify(msg);
         break;
       default:
         console.log("Unknown execution report status", msg[39]);

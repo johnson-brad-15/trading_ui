@@ -36,15 +36,15 @@ class MarketMaker:
             self.manage_orders_task = asyncio.create_task(self.manage_orders_loop())
 
     async def place_new_order(self, side, px, qty):
-        print("MM New order")
+        # print("MM New order")
         self.ob_new_event.set(Order(side, px, qty, self.client_id, self.ack_event, not self.is_auto))
 
     async def modify_order(self, order_id, new_px, new_qty=None):
-        print("MM Modify order")
+        # print("MM Modify order")
         self.ob_modify_event.set((order_id, new_px, new_qty))
 
     async def cancel_order(self, order_id):
-        print(f"MM cancel order: {order_id}")
+        # print(f"MM cancel order: {order_id}")
         self.ob_cancel_event.set(order_id)
 
     async def wait_ack(self, e):
@@ -55,7 +55,6 @@ class MarketMaker:
 
     async def handle_ack(self, ack):
         try:
-            print("MM handle ack")
             if ack.status in [OrderStatus.NEW, OrderStatus.MODIFIED]:
                 if ack.order.side == 'Buy':
                     self.bid = ack.order
@@ -67,7 +66,6 @@ class MarketMaker:
                 else:
                     self.ask = None
             if self.ms_ack_event:
-                print("Setting mas_ack_event")
                 self.ms_ack_event.set(ack)
         except Exception as ex:
             print(ex) 

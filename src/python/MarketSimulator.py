@@ -34,24 +34,6 @@ def getNextClientId():
 # In[3]:
 
 
-# class BookSender:
-#     def __init__(self, ob, event):
-#         self.ob = ob
-#         self.event = event
-#         self.websocket = None
-        
-#     async def sendBook(self):
-#         while True:
-#             # print(f'Waiting to send')
-#             self.event.wait()
-#             # print(f'send event set')
-#             msg = self.ob.toJson()
-#             if self.websocket:
-#                 print(f'Sending: {msg}')
-#                 await self.websocket.send(msg)
-#             self.event.clear()
-#             # print(f'Send event cleared')
-
 class WebSocketSender:
     def __init__(self, ws):
         self.ws = ws
@@ -82,47 +64,59 @@ class WebSocketHandler:
         while True:
             print("MS:Awaiting acks")
             await e.waitRun(self.handle_ack)
-            print("8 MS:ran handle_ack")
             e.clear()
-            print("MS:cleared event")
 
     async def handle_ack(self, ack):
-        print(f"7 MS:New ack: {ack.status} {ack.order.id} {ack.order.clientId} {self.wsByClientId}")
-        if ack.order.id < 0:
-            if ack.order.clientId in self.wsByClientId:
-                if ack.status == OrderStatus.NEW:
-                    ack_ = json.dumps({35:8,
+        print(f"MS:New ack: {ack.status} {ack.order.id} {ack.order.clientId} {self.wsByClientId}")
+        try:
+            if ack.order.id < 0: # Manual MM
+                if ack.order.clientId in self.wsByClientId:
+                    if ack.status == OrderStatus.NEW:
+                        ack_ = json.dumps({35:8,
+                                             56:ack.order.clientId,
+                                             39:0, # New
+                                             11:ack.order.id,
+                                             54:(1 if ack.order.side == "Buy" else 2),
+                                             38:ack.order.qty,
+                                             44:ack.order.px,
+                                             52:str(dt.datetime.now())
+                                            })
+                    elif ack.status == OrderStatus.CANCELLED:
+                        ack_ = json.dumps({35:8,
+                                             56:ack.order.clientId,
+                                             39:4, # Cancelled
+                                             11:ack.order.id,
+                                             54:(1 if ack.order.side == "Buy" else 2),
+                                             38:ack.order.qty,
+                                             44:ack.order.px,
+                                             52:str(dt.datetime.now())
+                                            })
+                    elif ack.status == OrderStatus.MODIFIED:
+                        ack_ = json.dumps({35:8,
+                                             56:ack.order.clientId,
+                                             39:5, # Replaced
+                                             11:ack.order.id,
+                                             54:(1 if ack.order.side == "Buy" else 2),
+                                             38:ack.order.qty,
+                                             44:ack.order.px,
+                                             52:str(dt.datetime.now())
+                                            })
+                    elif ack.status in [ OrderStatus.FULLY_FILLED, OrderStatus.PARTIALLY_FILLED ]:
+                        print('MS: Fill Ack: ', ack.status)
+                        ack_ = json.dumps({ 35:8,
                                          56:ack.order.clientId,
-                                         39:0, # New
+                                         39:(2 if ack.status == OrderStatus.FULLY_FILLED else 1),
                                          11:ack.order.id,
                                          54:(1 if ack.order.side == "Buy" else 2),
                                          38:ack.order.qty,
                                          44:ack.order.px,
                                          52:str(dt.datetime.now())
-                                        })
-                if ack.status == OrderStatus.CANCELLED:
-                    ack_ = json.dumps({35:8,
-                                         56:ack.order.clientId,
-                                         39:4, # Cancelled
-                                         11:ack.order.id,
-                                         54:(1 if ack.order.side == "Buy" else 2),
-                                         38:ack.order.qty,
-                                         44:ack.order.px,
-                                         52:str(dt.datetime.now())
-                                        })
-                if ack.status == OrderStatus.MODIFIED:
-                    ack_ = json.dumps({35:8,
-                                         56:ack.order.clientId,
-                                         39:5, # Replaced
-                                         11:ack.order.id,
-                                         54:(1 if ack.order.side == "Buy" else 2),
-                                         38:ack.order.qty,
-                                         44:ack.order.px,
-                                         52:str(dt.datetime.now())
-                                        })
-                # print(f"Sending {ack_} to self.wsByClientId[ack.order.clientId]")
-                await self.wsByClientId[ack.order.clientId].send(ack_)
-                    
+                                       })
+                    # print(f"Sending {ack_} to self.wsByClientId[ack.order.clientId]")
+                    await self.wsByClientId[ack.order.clientId].send(ack_)
+        except Exception as ex:
+            print(ex)
+            traceback.print_exc(file=sys.stdout)
 
     async def ws_recv(self, ws):
         # print(f'{dt.datetime.now().timestamp()}:: Waiting for msg from {ws}')
@@ -176,13 +170,14 @@ class WebSocketHandler:
                     print("Logout")
                 elif msg['35'] == 'D':
                     try:
+                        # print("MS New msg")
                         await self.mms[msg['49']].place_new_order('Buy' if msg['38'] > 0 else 'Sell', msg['44'], abs(msg['38']))
                     except Exception as ex:
                         print(ex)
                         traceback.print_exc(file=sys.stdout)
                 elif msg['35'] == 'F':
                     try:
-                        print("MS Cancel msg")
+                        # print("MS Cancel msg")
                         order_id = msg['11']
                         await self.mms[msg['49']].cancel_order(msg['11'])
                     except Exception as ex:
@@ -190,7 +185,7 @@ class WebSocketHandler:
                         traceback.print_exc(file=sys.stdout)
                 elif msg['35'] == 'G':
                     try:
-                        print("MS Modify msg")
+                        # print("MS Modify msg")
                         order_id = msg['11']
                         await self.mms[msg['49']].modify_order(msg['11'], msg['44'])
                     except Exception as ex:
@@ -254,7 +249,7 @@ if __name__ == "__main__":
 # In[ ]:
 
 
-
+#python -m nbconvert --to script MarketSimulator.ipynb
 
 
 # In[ ]:

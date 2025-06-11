@@ -31,7 +31,7 @@ class Order:
         self.ackEvent = ackEvent
 
     def __str__(self):
-        return f'<{self.id}: {self.party} {self.side} {self.qty} @ {self.px}>'
+        return f'<{self.id}: {self.clientId} {self.side} {self.qty} @ {self.px}>'
 
     def __repr__(self):
         return str(self)

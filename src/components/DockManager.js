@@ -5,7 +5,7 @@ import {
 } from 'dockview';
 import '../../node_modules/dockview-core/dist/styles/dockview.css';
 import React from 'react';
-import Ladder from './ladder'
+import InstrumentLevel from './InstrumentLevel'
 
 function DockManager(props) {
 
@@ -14,7 +14,7 @@ function DockManager(props) {
     };
     
     const PriceView = (props) => {
-        return <Ladder sharedData={props.sharedData} />;
+        return <InstrumentLevel sharedData={props.sharedData} />;
     };
     
     const components = {

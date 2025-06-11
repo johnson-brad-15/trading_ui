@@ -51,17 +51,15 @@ class OrderBook:
                 fix42[268].append({269:0,270:bidPxs[i],271:bidQtys[i]})
             for i in range(len(askPxs)):
                 fix42[268].append({269:1,270:askPxs[i],271:askQtys[i]})
-        elif msgType == 8:
-            fix42 = { 35:8
-                     ,37:fill.orderId
-                     ,11:fill.clientOrderId
-                     ,39:(0 if fill.isFull else 1)
-                     ,52:str(fill.date)
-                     ,55:self.symbol
-                     ,56:fill.party
-                     ,54:fill.side
-                     ,38:fill.qty
-                     ,31:fill.px}
+        # elif msgType == 'X':
+        #     fix42 = { 35:'X'
+        #              ,269:2
+        #              ,52:str(fill.date)
+        #              ,55:self.symbol
+        #              ,56:fill.clientId
+        #              ,54:(1 if fill.side == "Buy" else 2)
+        #              ,38:fill.qty
+        #              ,44:fill.px}
 
         return json.dumps(fix42)
 
@@ -72,14 +70,13 @@ class OrderBook:
             e.clear()
 
     async def newOrder(self, o):
-        print("3 OB:New order")
         self.ordersById[o.id] = o
         side, other_side = (self.bids, self.asks) if o.side == 'Buy' else (self.asks, self.bids)
         if o.px not in side:
             side[o.px] = deque()
         side[o.px].append(o)
         if o.ackEvent:
-            print(f"4 OB:Setting AckEvent: {o.ackEvent}")
+            print(f"{dt.datetime.now().timestamp()}:: OB:Setting New Order AckEvent: {o.ackEvent}")
             try:
                 o.ackEvent.set(OrderAck(o,OrderStatus.NEW))
             except Exception as ex:
@@ -119,7 +116,7 @@ class OrderBook:
             print(ex)
             traceback.print_exc(file=sys.stdout)
         if o.ackEvent:
-            # print(f'Setting modify ack event: {o}')
+            print(f"{dt.datetime.now().timestamp()}:: OB:Setting Modify AckEvent: {o}")
             o.ackEvent.set(OrderAck(o,OrderStatus.MODIFIED))
         self.match(o)
         self.send_book_event.set()
@@ -143,6 +140,7 @@ class OrderBook:
         self.send_book_event.set()
             
     def fill(self, o, sz):
+        print(f'OB: Fill')
         exec_time = dt.datetime.now()
         side, other_side = (self.bids, self.asks) if o.side == 'Buy' else (self.asks, self.bids)
         o.qty -= sz
@@ -156,12 +154,13 @@ class OrderBook:
                 # print(f'Removing {o.px} from side: {o.side}')
                 del side[o.px]
             if o.ackEvent:
+                print('OB: Full fill')
                 o.ackEvent.set(OrderAck(o,OrderStatus.FULLY_FILLED))
         else:
             if o.ackEvent:
                 o.ackEvent.set(OrderAck(o,OrderStatus.PARTIALLY_FILLED))
-        self.send_trade_event.set(Fill(exec_time, o.id, o.id, o.party, o.side, sz, o.px, o.qty == 0))
-        print(f'{pre} FILL: {o.party} {o.side}s {sz} @ {o.px} {o.qty} Remaining')
+        self.send_trade_event.set(Fill(exec_time, o.id, o.id, o.clientId, o.side, sz, o.px, o.qty == 0))
+        print(f'{pre} FILL: {o.clientId} {o.side}s {sz} @ {o.px} {o.qty} Remaining')
         self.send_book_event.set()
         
 
@@ -199,6 +198,7 @@ class OrderBook:
         if self.websocket:
             for ws in self.websocket:
                 if ws.open:
+                    print(f"{dt.datetime.now().timestamp()}:: OB:Sending Book")
                     await ws.send(msg)
 
     async def wait_send_trade(self, e):
@@ -208,11 +208,12 @@ class OrderBook:
             e.clear()
 
     async def send_trade(self, fill=None):
-        msg = self.toJson(8, fill=fill)
-        if self.websocket:
-            for ws in self.websocket:
-                if ws.open:
-                    await ws.send(msg)
+        pass;
+        # msg = self.toJson('X', fill=fill)
+        # if self.websocket:
+        #     for ws in self.websocket:
+        #         if ws.open:
+        #             await ws.send(msg)
 
     def __str__(self):
         # return "OrderBook"
