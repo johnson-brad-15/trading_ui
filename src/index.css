@@ -90,8 +90,10 @@ div.LadderRow {
   border-bottom: 0px solid black;
 }
 
-div.ladder {
+.InstrumentLevelView {
   width: 100%;
+  height: auto;
+  max-width: 98%;
   background-color: #1e1e1e;
   color: #ffffff;
   font-family: Verdana, source-code-pro, Menlo, Monaco, Consolas, monospace;
