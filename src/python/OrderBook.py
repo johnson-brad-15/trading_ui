@@ -112,14 +112,14 @@ class OrderBook:
                 if o.px not in side:
                     side[o.px] = deque()
                 side[o.px].append(o)
+            if o.ackEvent:
+                # print(f"{dt.datetime.now().timestamp()}:: OB:Setting Modify AckEvent: {o}")
+                o.ackEvent.set(OrderAck(o,OrderStatus.MODIFIED))
+            self.match(o)
+            self.send_book_event.set()
         except Exception as ex:
             print(ex)
             traceback.print_exc(file=sys.stdout)
-        if o.ackEvent:
-            print(f"{dt.datetime.now().timestamp()}:: OB:Setting Modify AckEvent: {o}")
-            o.ackEvent.set(OrderAck(o,OrderStatus.MODIFIED))
-        self.match(o)
-        self.send_book_event.set()
 
     async def wait_cancel(self, e):
         print("Awaiting cancels")
@@ -190,15 +190,18 @@ class OrderBook:
     async def wait_send_book(self, e):
         print(f'Waiting to send book')
         while True:
-            await e.waitRun(self.send_book)
+            try:
+                await e.waitRun(self.send_book)
+            except Exception as ex:
+                print(ex)
+                traceback.print_exc(file=sys.stdout)
             e.clear()
 
     async def send_book(self, data=None):
-        msg = self.toJson('W')
         if self.websocket:
+            msg = self.toJson('W')
             for ws in self.websocket:
                 if ws.open:
-                    print(f"{dt.datetime.now().timestamp()}:: OB:Sending Book")
                     await ws.send(msg)
 
     async def wait_send_trade(self, e):

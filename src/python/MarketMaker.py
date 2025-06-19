@@ -23,12 +23,6 @@ class MarketMaker:
         self.bid = None
         self.ask = None
         self.run = True
-        
-        if px is None:
-            chrome_options.add_argument("--headless")
-            driver = webdriver.Chrome(options=chrome_options)
-            driver.get(url = f"https://query1.finance.yahoo.com/v8/finance/chart/{symbol}?symbol={symbol}")
-            self.px = float(p.search(driver.page_source).group().split(':')[-1].split(',')[0])
 
     async def start(self):
         self.wait_ack_task = asyncio.create_task(self.wait_ack(self.ack_event))
@@ -36,11 +30,9 @@ class MarketMaker:
             self.manage_orders_task = asyncio.create_task(self.manage_orders_loop())
 
     async def place_new_order(self, side, px, qty):
-        # print("MM New order")
         self.ob_new_event.set(Order(side, px, qty, self.client_id, self.ack_event, not self.is_auto))
 
     async def modify_order(self, order_id, new_px, new_qty=None):
-        # print("MM Modify order")
         self.ob_modify_event.set((order_id, new_px, new_qty))
 
     async def cancel_order(self, order_id):
@@ -72,21 +64,20 @@ class MarketMaker:
             traceback.print_exc(file=sys.stdout)
 
     async def manage_orders_loop(self):
-        # print("Managing orders loop")
         while self.run:
             await self.manage_orders()
 
     async def manage_orders(self):
-        # print("Managing orders")
         try:
-            bidPx = self.px - (random.randint(1, 4) * self.tick_sz)
+            bidPx = self.px - (random.randint(0, 3) * self.tick_sz)
             askPx = bidPx + (self.width * self.tick_sz)
+            self.px = (bidPx + askPx) / 2;
             if self.bid:
-                await self.modify_order(self.bid, bidPx, self.bid.qty)
+                await self.modify_order(self.bid.id, bidPx, self.bid.qty)
             else:
                 await self.place_new_order('Buy', bidPx, self.qty)
             if self.ask:
-                await self.modify_order(self.ask, askPx, self.ask.qty)
+                await self.modify_order(self.ask.id, askPx, self.ask.qty)
             else:
                 await self.place_new_order('Sell', askPx, self.qty)
             await asyncio.sleep(1)
