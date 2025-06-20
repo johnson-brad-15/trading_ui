@@ -1,0 +1,57 @@
+{
+  "name": "my-react-app",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@mdi/js": "^7.4.47",
+    "@mdi/react": "^1.6.1",
+    "@testing-library/dom": "^10.4.0",
+    "@testing-library/jest-dom": "^6.6.3",
+    "@testing-library/react": "^16.3.0",
+    "@testing-library/user-event": "^13.5.0",
+    "dockview": "^4.2.5",
+    "dockview-core": "^4.2.5",
+    "flexlayout": "^1.0.6",
+    "flexlayout-react": "^0.8.17",
+    "igniteui-dockmanager": "^1.16.1",
+    "react": "^19.1.0",
+    "react-dock": "^0.8.0",
+    "react-dom": "^19.1.0",
+    "react-draggable": "^4.4.6",
+    "react-financial-charts": "^2.0.1",
+    "react-scripts": "5.0.1",
+    "react-sparklines": "^1.7.0",
+    "web-vitals": "^2.1.4"
+  },
+  "scripts": {
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d build",
+    "start": "react-scripts start",
+    "build": "react-scripts build",
+    "test": "react-scripts test",
+    "eject": "react-scripts eject"
+  },
+  "eslintConfig": {
+    "extends": [
+      "react-app",
+      "react-app/jest"
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "devDependencies": {
+    "@types/react-sparklines": "^1.7.5",
+    "gh-pages": "^6.3.0"
+  },
+  "homepage": "https://johnson-brad-15.github.io/trading_ui"
+}

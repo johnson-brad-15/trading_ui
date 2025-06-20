@@ -15,7 +15,7 @@ import json
 from DataEvent import DataEvent, AsyncDataEvent
 from Order import OrderStatus
 import datetime as dt
-import yfinance as yf
+# import yfinance as yf
 
 
 # In[2]:
@@ -43,7 +43,7 @@ class WebSocketSender:
 
     async def send(self, msg):
         try:
-            print(f'{dt.datetime.now().timestamp()}:: Sending: {msg} on {self.ws.remote_address}')
+            # print(f'{dt.datetime.now().timestamp()}:: Sending: {msg} on {self.ws.remote_address}')
             await self.ws_send(msg);
         except Exception as ex:
             print(ex)
@@ -124,7 +124,7 @@ class WebSocketHandler:
         await_msg_task = None
         asyncio.create_task(self.handle_ws_msg(ws))
         await asyncio.sleep(0)
-        await ws.send(json.dumps({35:'d',55:'META'}))
+        await ws.send(json.dumps({35:'d',55:symbol,15:currency,969:tick_sz,44:opening_px}))
         while True:
             # print(f'{dt.datetime.now().timestamp()}:: Lock: {self.msgLock}')
             # await self.msgLock.acquire()
@@ -160,7 +160,7 @@ class WebSocketHandler:
                             self.wsByClientId[clientId] = ws
                             self.mms[clientId] = MarketMaker(ob, self.ob.symbol, clientId, ms_ack_event=self.ackEvent, px=opening_px, default_qty=10, width=4)
                             print(f'Created MM')
-                            reply = {35:"A",56:clientId,44:self.mms[clientId].px}
+                            reply = {35:"A",55:symbol,56:clientId,44:self.mms[clientId].px}
                             # print(f"Replying with {reply}")
                             await ws.send(json.dumps(reply))
                             await self.mms[clientId].start()
@@ -237,8 +237,11 @@ async def main_async(ob, mms):
         traceback.print_exc(file=sys.stdout)
 
 symbol = 'META'
-ticker = symbol # this is craziness, but it doesn't work if I just use symbol
-opening_px = yf.download(ticker, start=dt.datetime.now().strftime('%Y-%m-%d'), auto_adjust=True)['Open'].iloc[0][0]
+# ticker = symbol # this is craziness, but it doesn't work if I just use symbol
+# opening_px = yf.download(ticker, start=dt.datetime.now().strftime('%Y-%m-%d'), auto_adjust=True)['Open'].iloc[0][0]
+opening_px = 720.00
+currency = 'USD'
+tick_sz = 0.01
 
 if __name__ == "__main__":
     book_event = asyncio.Event()
@@ -253,26 +256,4 @@ if __name__ == "__main__":
 
 
 #python -m nbconvert --to script MarketSimulator.ipynb
-
-
-# In[ ]:
-
-
-import yfinance as yf
-
-
-# In[ ]:
-
-
-ticker = 'META'
-#data = yf.download(ticker, start='2025-06-11', auto_adjust=True)
-data = yf.download(ticker, start=dt.datetime.now().strftime('%Y-%m-%d'), auto_adjust=True)
-# print(data.info())
-print(data['Open'].iloc[0][0])
-
-
-# In[ ]:
-
-
-
 

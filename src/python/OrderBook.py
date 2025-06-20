@@ -16,7 +16,6 @@ class OrderBook:
         self.symbol = symbol
         self.websocket = []
         self.loop = asyncio.get_event_loop()
-        # self.send_book_event = AsyncDataEvent()
         self.send_book_event = AsyncDataEvent()
         self.send_trade_event = AsyncDataEvent()
         self.new_event = AsyncDataEvent()
@@ -32,7 +31,6 @@ class OrderBook:
         waitCancelTask = asyncio.create_task(self.wait_cancel(self.cancel_event))
         waitSendBookTask = asyncio.create_task(self.wait_send_book(self.send_book_event))
         waitSendTradeTask = asyncio.create_task(self.wait_send_trade(self.send_trade_event))
-        # # await asyncio.gather(waitNewTask, waitModifyTask, waitCancelTask, waitSendBookTask)
 
     def toJson(self, msgType, fill=None):
         bids = sum([list(o) for o in [self.bids[lvl] for lvl in sorted(list(self.bids.keys()))[::-1]]], [])
@@ -51,15 +49,6 @@ class OrderBook:
                 fix42[268].append({269:0,270:bidPxs[i],271:bidQtys[i]})
             for i in range(len(askPxs)):
                 fix42[268].append({269:1,270:askPxs[i],271:askQtys[i]})
-        # elif msgType == 'X':
-        #     fix42 = { 35:'X'
-        #              ,269:2
-        #              ,52:str(fill.date)
-        #              ,55:self.symbol
-        #              ,56:fill.clientId
-        #              ,54:(1 if fill.side == "Buy" else 2)
-        #              ,38:fill.qty
-        #              ,44:fill.px}
 
         return json.dumps(fix42)
 
