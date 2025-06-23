@@ -41,6 +41,7 @@ class MarketSimulator {
         this.handleDataMessage = handleDataMessage;
 
         this.mms = {};
+        this.numAutoMMs = 1;
 
         this.ackEvent = new AsyncDataEvent();
         
@@ -156,9 +157,11 @@ class MarketSimulator {
                 this.currency = msg[15];
                 this.ob = new OrderBook(this.symbol, this.send);
                 this.ob.start();
-                let clientId = this.getNextClientId();
-                this.mms[clientId] = new MarketMaker(this.ob, this.symbol, clientId, null, this.opening_px, 10, 4 );
-                this.mms[clientId].start();
+                for (let i = 0; i < this.numAutoMMs; i++) {
+                    let clientId = this.getNextClientId();
+                    this.mms[clientId] = new MarketMaker(this.ob, this.symbol, clientId, null, this.opening_px, 10 + i + 1, 4 );
+                    this.mms[clientId].start();
+                }
                 console.log("About to send to WSM: ", reply);
                 this.onmessage_cb(MSEvent(JSON.stringify(reply)));
                 break;

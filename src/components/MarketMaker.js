@@ -1,5 +1,6 @@
 import { AsyncDataEvent } from './DataEvent';
 import { Order, OrderStatus } from './Order';
+import { roundTo } from '../utils/utils';
 
 class MarketMaker {
     constructor(ob, symbol, client_id, ms_ack_event = null, px = null, default_qty = null, width = 4) {
@@ -32,6 +33,7 @@ class MarketMaker {
     place_new_order(side, px, qty) {
         console.log("MM:", this.client_id, " place_new_order: ", side, px, qty);
         let order = new Order(side, px, qty, this.client_id, this.ack_event, !this.is_auto);
+        order.status = OrderStatus.PENDING;
         if (side == 'Buy')
             this.bid = order;
         else
@@ -57,19 +59,26 @@ class MarketMaker {
 
     async handle_ack(ack) {
         try {
-            if ([OrderStatus.NEW, OrderStatus.MODIFIED].includes(ack.status)) {
-                console.log("MM:", this.client_id, " New/Modify ack recieved: ", ack);
-                if (ack.order.side === 'Buy') {
-                    this.bid = ack.order;
-                } else {
-                    this.ask = ack.order;
-                }
-            } else if ([OrderStatus.CANCELLED, OrderStatus.FULLY_FILLED].includes(ack.status)) {
-                if (ack.order.side === 'Buy') {
-                    this.bid = null;
-                } else {
-                    this.ask = null;
-                }
+            ack.order.status = ack.status;
+            switch (ack.status) {
+                case OrderStatus.NEW:
+                case OrderStatus.MODIFIED:
+                case OrderStatus.PARTIALLY_FILLED:
+                    if (ack.order.side === 'Buy') {
+                        this.bid = ack.order;
+                    } else {
+                        this.ask = ack.order;
+                    }
+                    break;
+                case OrderStatus.CANCELLED:
+                case OrderStatus.FULLY_FILLED:
+                    if (ack.order.side === 'Buy') {
+                        this.bid = null;
+                        // this.place_new_order('Buy', bidPx, this.qty);
+                    } else {
+                        this.ask = null;
+                        // this.place_new_order('Sell', bidPx, this.qty);
+                    } 
             }
             if (this.ms_ack_event) {
                 console.log("MM: handleAck: setting MS ack event", ack.status, ack);
@@ -90,8 +99,11 @@ class MarketMaker {
 
     async manage_orders() {
         try {
-            console.log("MM:", this.client_id, " Managing orders: ", this.bid, this.ask);
-            const bidPx = this.px - (Math.floor(Math.random() * 4) * this.tick_sz);
+            console.log("MM:", this.client_id, " Managing orders: ", this.bid ? this.bid.toString() : 'No Bid', this.ask ? this.ask.toString() : "No Ask");
+            const min = this.width / 2 - 1;
+            const max = this.width / 2 + 1;
+            const bidTicks = Math.floor(Math.random() * ((max - min) + 1)) + min;
+            const bidPx = roundTo(this.px - (bidTicks * this.tick_sz), 2);
             const askPx = bidPx + (this.width * this.tick_sz);
             this.px = (bidPx + askPx) / 2;
             if (!this.bid) 
