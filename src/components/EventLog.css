@@ -1,0 +1,22 @@
+.entry {
+    padding: 0;
+    margin: 0;
+    font-size: 10px;
+    line-height: 13px;
+    background-color: transparent;
+}
+.entry.A {
+    color: black;
+}
+.entry.new {
+    color: black;
+}
+.entry.modify {
+    color: blue;
+}
+.entry.cancel{
+    color: firebrick;
+}
+.fill {
+    color: green;
+}

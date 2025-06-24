@@ -45,30 +45,32 @@ class Order {
 }
 
 class StateUpdater{
-    constructor(instrumentRef) {
+    constructor(instrumentRef, eventCallbacks) {
         this.instrumentRef = instrumentRef;
         this.updateState = this.updateState.bind(this);
+        this.eventCallbacks = eventCallbacks;
     }
 
     updateState(state, msg)  {
+        let newState = null;
         switch (msg[35]) {
             case('d'): //Sec def
-                return this.processSecDef(state, msg);
+                newState = this.processSecDef(state, msg);
                 break;
             case('A'): //Logon
-                return this.processLogon(state, msg);
+                newState = this.processLogon(state, msg);
                 break;
             case('W'): //MD snapshot
-                const newState = this.processMdSnapshot(state, msg);
-                return newState;
+                newState = this.processMdSnapshot(state, msg);
                 break;
             case(8):
-                return this.processExecRpt(state, msg);
+                newState = this.processExecRpt(state, msg);
                 break;
             default:
                 console.log("Unknown message type", msg[35]);
                 return {...state};
         }
+        return newState;
     }
 
     processSecDef(state, msg) {
@@ -147,17 +149,17 @@ class StateUpdater{
     }
 
     processExecRpt(state, msg) {
-        console.log("DM:SU:processExecRpt ", msg);
+        // console.log("DM:SU:processExecRpt ", msg);
         const newState = { ...state };
         const date = new Date(msg[52]);
         switch (msg[39]) {
             case(0): //New
-                console.log("DM: New: ", msg);
+                // console.log("DM: New: ", msg);
                 this.updateMyOrders(newState, msg);
             break;
             case(1):
             case(2): 
-                console.log("DM: Fill: ", msg);
+                // console.log("DM: Fill: ", msg);
                 this.updateLastTradePx(newState, msg[44], msg[38], date);
                 if (msg[56] === this.instrumentRef.current.clientId) {
                     console.log("DM: UpdateState: FIll: ", msg);
@@ -165,11 +167,11 @@ class StateUpdater{
                 }
                 break;
             case(4): //Cancel
-                console.log("DM: FilCancell: ", msg);
+                // console.log("DM: FilCancell: ", msg);
                 this.processCancel(newState, msg);
                 break;
             case(5): //Modify
-                console.log("DM: Modify: ", msg);
+                // console.log("DM: Modify: ", msg);
                 this.processModify(newState, msg);
                 break;
             default:
@@ -345,12 +347,12 @@ class StateUpdater{
 }
 
 function DataManager({url, onDataChange}) {
-    const { data: instrument, update: updateInstrument } = useInstrument();
+    const { data: instrument, update: updateInstrument, callbacks: callbacks } = useInstrument();
     const instrumentRef = useRef(instrument);
 
     const stateUpdaterRef = useRef(null);
     if (stateUpdaterRef.current === null)
-        stateUpdaterRef.current = new StateUpdater(instrumentRef);
+        stateUpdaterRef.current = new StateUpdater(instrumentRef, callbacks);
     const stateUpdater = stateUpdaterRef.current;
 
     const webSocketManagerRef = useRef(null);
@@ -424,7 +426,7 @@ function DataManager({url, onDataChange}) {
     useEffect(() => {
         console.log("initializing WebSocket connection");
         console.log(stateUpdater);
-        webSocketManagerRef.current = new WebSocketManager('ws://localhost', 8765, handleWebSocketMessage);
+        webSocketManagerRef.current = new WebSocketManager('ws://localhost', 8765, handleWebSocketMessage, callbacks);
         webSocketManagerRef.current.connect(true);
     }, []);
 

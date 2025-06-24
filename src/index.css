@@ -63,6 +63,18 @@ padding: 10px;
   height: 100% !important;
 }
 
+/* For Webkit browsers (Chrome, Safari, Opera) */
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* For IE, Edge, and Firefox */
+.hide-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+
 div {
   padding-top: 0px;
   padding-bottom: 0px;
@@ -90,15 +102,23 @@ div.LadderRow {
   border-bottom: 0px solid black;
 }
 
+.ilv_container {
+  flex: auto;
+  overflow: "auto";
+  height: "300px";
+  /* display: flex;
+  flex-direction: column; */
+}
+
 .InstrumentLevelView {
   width: 100%;
   height: auto;
   max-width: 98%;
-  background-color: #1e1e1e;
+  background-color: greenyellow;
   color: #ffffff;
   font-family: Verdana, source-code-pro, Menlo, Monaco, Consolas, monospace;
   font-size: 11px;
-  border: 1px solid black;
+  /* border: 1px solid black; */
   border-spacing: 0;
   border-collapse: collapse;
 }

@@ -72,17 +72,6 @@ class MarketSimulator {
         }
     }
 
-    // async waitAck(e) {
-    //     while (true) {
-    //         // console.log("MS:Awaiting acks");
-    //         await new Promise(resolve => e.once('run', async () => {
-    //             await this.handleAck(); 
-    //             resolve();
-    //         }));
-    //         e.emit('clear');
-    //     }
-    // }
-
     async handleAck(ack) {
         // console.log(`MS:handleAck ack: `, ack.order.id, ack.status, ack); //${ack.status} ${ack.order.id} ${ack.order.clientId}`);
         try {
@@ -113,7 +102,7 @@ class MarketSimulator {
                         52: new Date().toISOString()
                     };
                 } else if (ack.status === OrderStatus.MODIFIED) {
-                    // console.log("MS: Modify ack");
+                    // console.log("MS: Modify ack: ", ack);
                     ack_ = {
                         35: 8,
                         56: ack.order.clientId,

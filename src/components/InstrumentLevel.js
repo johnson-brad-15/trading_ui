@@ -22,9 +22,9 @@ const InstrumentLevel_MyBids = React.memo(function InstrumentLevel_MyBids(props)
         const droppedData = event.dataTransfer.getData('application/json');
         const items = JSON.parse(droppedData);
         console.log('Dropped Bids:', items, ' at ', px);
-        Object.values(items).map((order, index) => (
+        Object.values(items).map((order, index) => {
             instrument.wsSend({35:'G',49:instrument.clientId,11:order.id,44:px})
-        ));
+        });
     }
     const handleRightClick = (event) => {
         console.log('Cancelled bids at:', px);
@@ -48,10 +48,11 @@ const InstrumentLevel_MyBids = React.memo(function InstrumentLevel_MyBids(props)
         // </Profiler>
     )
 }, (prevProps, nextProps) => { // Is re-render unneeded
-    return (
-        prevProps.level.px == nextProps.level.px &&
-        prevProps.level.myBidQty == nextProps.level.myBidQty
-    )
+    return false;
+    // return (
+    //     prevProps.level.px == nextProps.level.px &&
+    //     prevProps.level.myBidQty == nextProps.level.myBidQty
+    // )
     // return AreArraysIndexEqual([...Object.values(prevProps)], [...Object.values(nextProps)]);
 });
 
