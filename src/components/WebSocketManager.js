@@ -2,11 +2,12 @@ import { useEffect, useState, useRef } from 'react';
 import MarketSimulator, { MSEvent } from './MarketSimulator';
 
 class WebSocketManager {
-    constructor(domain, port, handleDataMessage) {
+    constructor(domain, port, handleDataMessage, callbacks) {
         this.dommain = domain;
         this.port = port;
         this.url = domain + ':' + port.toString();
         this.handleDataMessage = handleDataMessage;
+        this.eventCallbacks = callbacks;
 
         if (WebSocketManager.instance) {
             return WebSocketManager.instance;
@@ -47,10 +48,12 @@ class WebSocketManager {
                     case('A'): //Logon
                       console.log("WSM: logon: ", msg);
                       this.processLogon(msg);
+                      this.disseminateEvent(msg);
                       break;
                     default:
                       console.log("WSM: Passing msg off via handleDataMessage: ", msg);
                       this.handleDataMessage(msg);
+                    //   this.disseminateEvent(msg);
                   }
                 }
             }
@@ -63,7 +66,7 @@ class WebSocketManager {
                 this.onerror,
                 this.onclose,
                 this.onmessage,
-                this.handleDataMessage
+                (msg) => { this.processDataMessage(msg); }
             );
             this.sendMessage = (msg) => { this.sendMSMessage(msg); };
             this.websocketReady = (ws, msg) => {
@@ -84,6 +87,10 @@ class WebSocketManager {
         }
     }
 
+    disseminateEvent(msg) {
+        this.eventCallbacks.forEach((cb) => { cb(msg); });
+    }
+
     websocketReady(ws, msg) {
         console.log(Date.now()/1000, ":: Sending logon message");
         this.sendMessage(JSON.stringify({49:-1,35:'A'}))
@@ -96,18 +103,27 @@ class WebSocketManager {
         this.handleDataMessage(msg);
     }
 
+    processDataMessage(msg) {
+        this.handleDataMessage(msg);
+        if (!(msg === null) && (35 in msg) && msg[35] != 'W')
+            this.disseminateEvent(msg);
+    }
+
     sendWSMessage = (message) => {
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
-            if (typeof message === 'string')
+            if (typeof message === 'string') {
                 this.ws.send(message);
-            else
+                // this.disseminateEvent(message);
+            }
+            else {
                 this.ws.send(JSON.stringify(message));
+                // this.disseminateEvent(message);
+            }
         }
     }
 
-    sendMSMessage = (message) => {
-        console.log("WSM: sendMSMessage: ", message);
-        this.ws.send(message);
+    sendMSMessage = (msg) => {
+        this.ws.send(msg);
     }
 }
 

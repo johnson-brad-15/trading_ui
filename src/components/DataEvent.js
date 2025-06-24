@@ -62,8 +62,9 @@ export class AsyncDataEvent extends EventEmitter {
     }
 
     async waitRun(f) {
-        if (this.verbose) console.log("AsyncDataEvent waiting");
-        await new Promise(resolve => this.once('event', resolve));
+        if (this.verbose) console.log("AsyncDataEvent waiting: ", this.q);
+        if (this.q.length === 0)
+            await new Promise(resolve => this.once('event', resolve));
         if (this.verbose) console.log("AsyncDataEvent out of wait: ", this.q);
         this.lock = true;
         try {

@@ -89,6 +89,7 @@ class OrderBook {
 
     async modifyOrder(data) {
         try {
+            // console.log("OB: modifyOrder: ", data);
             let [orderId, px, qty] = data;
             if (!this.ordersById[orderId]) return;
             const o = this.ordersById[orderId];

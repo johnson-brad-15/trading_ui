@@ -7,6 +7,8 @@ import InstrumentLevelView from './components/InstrumentLevelView';
 import Sparkline from './components/sparkline'
 import DockManager from './components/DockManager_';
 import FinChart from './components/testchart';
+import SplitContainer from './components/SplitContainer';
+import EventLog from './components/EventLog';
 
 import { InstrumentProvider, useInstrument } from './components/InstrumentContext';
 
@@ -20,7 +22,7 @@ function App() {
 
   return (
     <InstrumentProvider>
-      <div style={{width:200, height:500}}>
+      <div style={{width:200, height:700}}>
         <DataManager url="ws://localhost:8765" onDataChange={handleDataChange} />
         <InstrumentOnDay style={{width:'100%', height:'30px'}} data={sharedData}/>
         {/* <StockData onDataChange={handleDataChange} /> */}
@@ -28,7 +30,12 @@ function App() {
         {/* <div style={{height:500}}><FinChart sharedData={sharedData} /></div> */}
         <div style={{width:'100%', height:35}}><Sparkline sharedData={sharedData} /></div>
         {/* <div className="InstrumentLevelViewContainer" style={{width:200, height:500}}><InstrumentLevelView sharedData={sharedData}/></div> */}
-        <InstrumentLevelView initialWidth={200} sharedData={sharedData}/>
+        {/* <InstrumentLevelView initialWidth={200} sharedData={sharedData}/> */}
+        <SplitContainer 
+          id='ilv' 
+          C1={<InstrumentLevelView initialWidth={200} sharedData={sharedData}/>}
+          C2={<EventLog />}
+        />
       </div>
     </InstrumentProvider>
   );

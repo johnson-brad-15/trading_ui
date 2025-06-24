@@ -81,7 +81,7 @@ class MarketMaker {
                     } 
             }
             if (this.ms_ack_event) {
-                console.log("MM: handleAck: setting MS ack event", ack.status, ack);
+                // console.log("MM: handleAck: setting MS ack event", ack.status, ack);
                 this.ms_ack_event.set(ack);
             }
         } catch (ex) {
@@ -99,7 +99,7 @@ class MarketMaker {
 
     async manage_orders() {
         try {
-            console.log("MM:", this.client_id, " Managing orders: ", this.bid ? this.bid.toString() : 'No Bid', this.ask ? this.ask.toString() : "No Ask");
+            // console.log("MM:", this.client_id, " Managing orders: ", this.bid ? this.bid.toString() : 'No Bid', this.ask ? this.ask.toString() : "No Ask");
             const min = this.width / 2 - 1;
             const max = this.width / 2 + 1;
             const bidTicks = Math.floor(Math.random() * ((max - min) + 1)) + min;
